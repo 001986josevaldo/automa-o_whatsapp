@@ -1,0 +1,21 @@
+services:
+
+  waha:
+    image: devlikeapro/waha:latest
+    container_name: wppbotwaha
+    restart: always
+
+    ports:
+      - '3000:3000'
+    env_file:
+      - .env
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: wppbotapi
+    ports:
+      - '5000:5000'
+    env_file:
+      - .env

@@ -1,0 +1,71 @@
+# =========================
+# Variáveis de ambiente
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Ambientes virtuais
+venv/
+venvwaha/
+.venv/
+env/
+
+# =========================
+# Logs
+# =========================
+*.log
+logs/
+
+# =========================
+# Bancos de dados locais
+# =========================
+*.db
+*.sqlite
+*.sqlite3
+
+# =========================
+# Chroma / Banco vetorial
+# =========================
+banco_vetorial/
+chroma_db/
+
+# =========================
+# IDE / Editor
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# Sistema operacional
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Arquivos temporários
+# =========================
+*.tmp
+*.temp
+
+# =========================
+# Docker
+# =========================
+docker-compose.override.yml
+
+# =========================
+# Arquivos de teste
+# =========================
+.pytest_cache/
+.coverage
+htmlcov/
