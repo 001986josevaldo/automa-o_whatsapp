@@ -122,9 +122,9 @@ Escaneie o QR Code gerado no terminal utilizando seu aplicativo do WhatsApp.
 Execute o script de geração de embeddings e população do vetor ChromaDB dentro do container:
 
 Bash
-''bash
+'''bash
 
-'docker exec -it wppbotapi python3 /app/rag/rag.py'''
+docker exec -it wppbotapi python3 /app/rag/rag.py'''
 
 
 ## 🛡️ Licença e Boas Práticas
