@@ -13,8 +13,6 @@ Este repositório contém a solução completa de automação para um **Chatbot 
 ## 🛠️ Tecnologias Utilizadas
 
 ---
-## 🛠️ Tecnologias Utilizadas
-
 - **Linguagem:** Python 3.11+
 - **Framework Web:** Flask
 - **WhatsApp Engine:** WAHA (`NOWEB` Engine)
@@ -47,9 +45,6 @@ automacao_waha/
 
 ## 📦 Dependências (requirements.txt)
 
-
-**Plaintext**
-
 ```
 flask
 requests
@@ -66,16 +61,14 @@ chromadb
 
 ## 🚀 Como Executar o Projeto
 
-
 1. Pré-requisitos
    Docker e Docker Compose instalados no servidor/máquina.
 
 Chave de API do Google Gemini (GEMINI_API_KEY).
 
-2. Configuração do Arquivo docker-compose.yml
-   YAML
-   version: '3.8'
+2. Configuração do Arquivo docker-compose.yml version: YAML'3.8'
 
+```
 services:
   waha:
     image: devlikeapro/waha:latest
@@ -105,6 +98,7 @@ services:
 
 volumes:
   chroma_data:
+```
 
 
 3. Inicialização dos Containers
@@ -128,7 +122,9 @@ Escaneie o QR Code gerado no terminal utilizando seu aplicativo do WhatsApp.
 Execute o script de geração de embeddings e população do vetor ChromaDB dentro do container:
 
 Bash
-docker exec -it wppbotapi python3 /app/rag/rag.py
+''bash
+
+'docker exec -it wppbotapi python3 /app/rag/rag.py'''
 
 
 ## 🛡️ Licença e Boas Práticas
