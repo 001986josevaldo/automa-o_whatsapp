@@ -8,11 +8,10 @@ Este repositório contém a solução completa de automação para um **Chatbot 
 
 ![](https://pickle-reading-bd9.notion.site/image/https%3A%2F%2Fprod-files-secure.s3.us-west-2.amazonaws.com%2F17354937-4524-429d-83e0-cf764a3a7c06%2F5fe3575c-b79e-463d-abe2-d2ee81394e0b%2Fimage.png?table=block&id=11e9956f-3dc9-815a-825d-c7752de8bf75&spaceId=17354937-4524-429d-83e0-cf764a3a7c06&width=2000&userId=&cache=v2&imgBuildSrc=requestProxiedImageUrl)
 
-
-
 ## 🛠️ Tecnologias Utilizadas
 
 ---
+
 - **Linguagem:** Python 3.11+
 - **Framework Web:** Flask
 - **WhatsApp Engine:** WAHA (`NOWEB` Engine)
@@ -22,10 +21,12 @@ Este repositório contém a solução completa de automação para um **Chatbot 
 - **Leitor de Documentos:** PyPDF
 - **LLM:** Google Gemini API ou Groq llama
 - **Containerização:** Docker e Docker Compose
+
 ---
+
 ## 📂 Estrutura do Projeto
 
-```text
+```
 automacao_waha/
 ├── app.py                  # Servidor Flask principal e manipulador de Webhooks
 ├── bot/
@@ -58,7 +59,6 @@ pypdf
 chromadb
 ```
 
-
 ## 🚀 Como Executar o Projeto
 
 1. Pré-requisitos
@@ -68,7 +68,7 @@ Chave de API do Google Gemini (GEMINI_API_KEY).
 
 2. Configuração do Arquivo docker-compose.yml version: YAML'3.8'
 
-```
+```Python
 services:
   waha:
     image: devlikeapro/waha:latest
@@ -100,9 +100,8 @@ volumes:
   chroma_data:
 ```
 
-
 3. Inicialização dos Containers
-Suba os serviços utilizando o Docker Compose:
+   Suba os serviços utilizando o Docker Compose:
 
 Bash
 
@@ -110,17 +109,17 @@ Bash
 docker compose up -d --build
 ```
 
-
 4. Conectar ao WhatsApp (QR Code)
-Acesse o painel ou veja os logs do container do WAHA:
+   Acesse o painel ou veja os logs do container do WAHA:
 
 Bash
 
+```Shell
 docker logs -f waha
+```
 
 
 Escaneie o QR Code gerado no terminal utilizando seu aplicativo do WhatsApp.
-
 
 5. Ingestão da Base de Conhecimento (RAG)
    Insira os arquivos .pdf contendo as informações da empresa/atendimento dentro da pasta rag/documentos/.
@@ -129,7 +128,10 @@ Execute o script de geração de embeddings e população do vetor ChromaDB dent
 
 Bash
 
+```Shell
 docker exec -it wppbotapi python3 /app/rag/rag.py
+```
+
 
 ## 🛡️ Licença e Boas Práticas
 
