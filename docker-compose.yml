@@ -3,6 +3,8 @@ services:
   waha:
     image: devlikeapro/waha:latest
     container_name: wppbotwaha
+    environment:
+      - WHATSAPP_ENGINE=NOWEB
     restart: always
 
     ports:
@@ -19,3 +21,6 @@ services:
       - '5000:5000'
     env_file:
       - .env
+    volumes:
+      - .:/app
+      - ./chroma_data:/app/chroma_data

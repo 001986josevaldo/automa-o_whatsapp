@@ -37,6 +37,7 @@ logs/
 # =========================
 banco_vetorial/
 chroma_db/
+chroma_data/
 
 # =========================
 # IDE / Editor
@@ -69,3 +70,9 @@ docker-compose.override.yml
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Ignora toda a pasta rag e seus subdiretórios
+rag/
+
+# Abre uma exceção apenas para o primeiro PDF dentro de rag/data/
+!rag/data/banco_notas_base_expandida.pdf
