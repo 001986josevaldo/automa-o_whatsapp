@@ -3,24 +3,30 @@ services:
   waha:
     image: devlikeapro/waha:latest
     container_name: wppbotwaha
+    restart: always
     environment:
       - WHATSAPP_ENGINE=NOWEB
-    restart: always
-
     ports:
       - '3000:3000'
     env_file:
       - .env
+    volumes:
+      - ./.waha:/app/.waha
 
   api:
     build:
       context: .
       dockerfile: Dockerfile.api
     container_name: wppbotapi
+    restart: always
     ports:
       - '5000:5000'
     env_file:
       - .env
+    environment:
+      - WAHA_API_URL=http://waha:3000
     volumes:
       - .:/app
       - ./chroma_data:/app/chroma_data
+    depends_on:
+      - waha
