@@ -6,7 +6,10 @@ Este repositório contém a solução completa de automação para um **Chatbot 
 
 ## 🏗️ Arquitetura do Sistema
 
-![](https://pickle-reading-bd9.notion.site/image/https%3A%2F%2Fprod-files-secure.s3.us-west-2.amazonaws.com%2F17354937-4524-429d-83e0-cf764a3a7c06%2F5fe3575c-b79e-463d-abe2-d2ee81394e0b%2Fimage.png?table=block&id=11e9956f-3dc9-815a-825d-c7752de8bf75&spaceId=17354937-4524-429d-83e0-cf764a3a7c06&width=2000&userId=&cache=v2&imgBuildSrc=requestProxiedImageUrl)
+
+<p align="center">
+  <img src="images/fluxo-whatsapp.png" alt="Fluxo da automação WhatsApp" width="800">
+</p>
 
 ## 🛠️ Tecnologias Utilizadas
 
@@ -118,7 +121,6 @@ Bash
 docker logs -f waha
 ```
 
-
 Escaneie o QR Code gerado no terminal utilizando seu aplicativo do WhatsApp.
 
 5. Ingestão da Base de Conhecimento (RAG)
@@ -131,7 +133,6 @@ Bash
 ```Shell
 docker exec -it wppbotapi python3 /app/rag/rag.py
 ```
-
 
 ## 🛡️ Licença e Boas Práticas
 
