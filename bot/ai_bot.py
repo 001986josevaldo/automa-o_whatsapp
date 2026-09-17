@@ -8,17 +8,21 @@ from langchain_chroma import Chroma
 from langchain_core.messages import HumanMessage, AIMessage
 
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_google_genai import ChatGoogleGenerativeAI
 
-
-os.environ['GOOGLE_API_KEY'] = config('GEMINI_API_KEY')
-
+#from langchain_google_genai import ChatGoogleGenerativeAI
+#
+from langchain_groq import ChatGroq
+#from langchain_xai import ChatXAI
+    
+#os.environ['GOOGLE_API_KEY'] = config('GEMINI_API_KEY')
+os.environ['GROQ_API_KEY'] = config('GROQ_API_KEY')
+#os.environ['XAI_API_KEY'] = config('GROK_API_KEY')
 
 class AIBot:
 
     def __init__(self):
-        self.__chat = ChatGoogleGenerativeAI(
-            model='gemini-3.6-flash'
+        self.__chat = ChatGroq(
+            model="openai/gpt-oss-20b"
         )
         self.__retriever = self.__build_retriever()
 
@@ -33,28 +37,37 @@ class AIBot:
         )
 
         return vector_store.as_retriever(
-            search_kwargs={'k': 30},
+            search_kwargs={'k': 8},  # 30 era excessivo
         )
 
     def __build_messages(self, history_messages, question):
         messages = []
 
         for message in history_messages:
-            message_class = (
-                HumanMessage
-                if message.get('fromMe')
-                else AIMessage
-            )
+            # Suporta os dois formatos:
+            # 1. Novo (recomendado): {"role": "user", "content": "..."}
+            # 2. Antigo: {"fromMe": True/False, "body": "..."}
 
-            messages.append(
-                message_class(
-                    content=message.get('body')
-                )
-            )
+            if "role" in message:
+                role = message.get("role")
+                content = message.get("content")
+            else:
+                # formato antigo do WAHA
+                role = "assistant" if message.get("fromMe") else "user"
+                content = message.get("body")
 
-        messages.append(
-            HumanMessage(content=question)
-        )
+            if not content or not str(content).strip():
+                continue
+
+            content = str(content).strip()
+
+            if role == "user":
+                messages.append(HumanMessage(content=content))
+            else:
+                messages.append(AIMessage(content=content))
+
+        # pergunta atual do usuário
+        messages.append(HumanMessage(content=question))
 
         return messages
 
@@ -113,32 +126,22 @@ class AIBot:
             </context>
             '''
 
-        # Busca informações relevantes no banco vetorial
         docs = self.__retriever.invoke(question)
 
-        # Junta o conteúdo dos documentos
         context = '\n\n'.join(
             doc.page_content
             for doc in docs
         )
 
-        # Cria o prompt
         prompt = ChatPromptTemplate.from_messages(
             [
-                (
-                    'system',
-                    SYSTEM_TEMPLATE,
-                ),
-                MessagesPlaceholder(
-                    variable_name='messages'
-                ),
+                ('system', SYSTEM_TEMPLATE),
+                MessagesPlaceholder(variable_name='messages'),
             ]
         )
 
-        # Cria a cadeia usando a API atual do LangChain
         chain = prompt | self.__chat | StrOutputParser()
 
-        # Executa a IA
         response = chain.invoke(
             {
                 'context': context,

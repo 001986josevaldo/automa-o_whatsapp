@@ -16,112 +16,237 @@ ai_bot = AIBot()
 # Palavras-chave que indicam necessidade de falar com humano
 HUMAN_INTENTS = ["falar com atendente", "humano", "pessoa", "suporte humano", "falar com suporte", "atendente"]
 
-@app.route('/chatbot/webhook/', methods=['POST'])
+@app.route('/chatbot/webhook', methods=['POST'])
 def webhook():
     data = request.json or {}
 
-    # apoenas para imprimir no console os dados recebidos do webhook
-    print("==========EVENTO RECEBIDO=======:")
+    # ==========================================
+    # 1. DADOS DO EVENTO
+    # ==========================================
+
     event_id = data.get("id")
-    session = data.get("session")
-    body = data.get("payload", {}).get("body", "")
-    contato = data.get("payload", {}).get("from", "")
+   
+    session = data.get("session", "default")
+    event = data.get("event")
 
-    print(f"ID: {event_id}")
-    print(f"SESSÃO: {session}")
-    print(f"Contato: {contato}")
-    print(f"Mensagem: {body}")
-    
-    print("=============================")
+    payload = data.get("payload") or {}
 
-    #print(f'EVENTO RECEBIDO: {data}')
-    print()
+    chat_id = payload.get("from")
+    #print(f"Chat ID: {chat_id}")
 
-    # 1. Ignora eventos que não sejam mensagens de chat
-    if data.get('event') != 'message':
-        return jsonify({"status": "ignored", "reason": "not a message event"}), 200
+    chat_id = waha.resolve_lid_to_phone(chat_id, session=session)
+    print(f"Real Chat ID: {chat_id}")
 
-    # 2. Extrai dados da mensagem e sessão
+    received_message = payload.get("body", "")
+
+    if isinstance(received_message, str):
+        received_message = received_message.strip()
+    else:
+        received_message = ""
+
+    # ==========================================
+    # 2. DEBUG
+    # ==========================================
+
+    print("========== EVENTO RECEBIDO ==========")
+    print(f"ID:       {event_id}")
+    print(f"SESSÃO:   {session}")
+    print(f"EVENTO:   {event}")
+    print(f"Contato:  {chat_id}")
+    print(f"Mensagem: {received_message}")
+    print("=====================================")
+
+    # ==========================================
+    # 3. IGNORA EVENTOS QUE NÃO SÃO MENSAGENS
+    # ==========================================
+
+    if event != "message":
+        return jsonify({
+            "status": "ignored",
+            "reason": "not_a_message_event"
+        }), 200
+
+    # ==========================================
+    # 4. IGNORA MENSAGEM DO PRÓPRIO BOT
+    # ==========================================
+
+    if payload.get("fromMe"):
+        return jsonify({
+            "status": "ignored",
+            "reason": "message_sent_by_me"
+        }), 200
+
+    # ==========================================
+    # 5. VALIDA CONTATO
+    # ==========================================
+
+    if not chat_id:
+        print("⚠️ Evento sem contato.")
+        return jsonify({
+            "status": "ignored",
+            "reason": "missing_chat_id"
+        }), 200
+
+    # ==========================================
+    # 6. VALIDA MENSAGEM
+    # ==========================================
+
+    if not received_message:
+        print("⚠️ Mensagem vazia. Ignorando evento.")
+        return jsonify({
+            "status": "ignored",
+            "reason": "empty_message"
+        }), 200
+
+    # ==========================================
+    # 7. PROCESSAMENTO
+    # ==========================================
+
     try:
-        payload = data.get('payload', {})
-        
-        # Ignora mensagens enviadas pelo próprio bot (evita loops)
-        if payload.get('fromMe'):
-            return jsonify({'status': 'ignored', 'reason': 'message sent by me'}), 200
 
-        chat_id = payload['from']
-        received_message = payload.get('body', '')
-        session = data.get('session', 'default')
+        # --------------------------------------
+        # Verifica se atendimento humano está ativo
+        # --------------------------------------
 
-        # # 1. Se a conversa já está com humano, a IA ignora em silêncio
         if is_human_active(chat_id):
-            return jsonify({"status": "ignored", "reason": "human_mode_active"}), 200
+            return jsonify({
+                "status": "ignored",
+                "reason": "human_mode_active"
+            }), 200
 
-        # 2. Verifica se o cliente expressou necessidade de atendimento humano
-        if any(keyword in received_message.lower() for keyword in HUMAN_INTENTS):
+        # --------------------------------------
+        # Verifica intenção de atendimento humano
+        # --------------------------------------
+
+        if any(
+            keyword in received_message.lower()
+            for keyword in HUMAN_INTENTS
+        ):
+
             set_human_active(chat_id)
-            
-            # Avisa o cliente e notifica a equipe interna
+
             waha.send_message(
-                chat_id=chat_id, 
-                message="Entendido! Estou transferindo seu atendimento para uma pessoa da nossa equipe. Aguarde um momento. ⏳",
-                session=data.get('session', 'default')
+                chat_id=chat_id,
+                message=(
+                    "Entendido! Seu atendimento está sendo transferido "
+                    "para um de nossos especialistas. Lembramos que nossa "
+                    "equipe atende em horário comercial. Assim que possível, "
+                    "entraremos em contato. Por favor, aguarde um momento. ⏳"
+                ),
+                session=session
             )
-            # Dispara alerta para a equipe (Telegram, Slack, Webhook do CRM)
-            notify_support_team(chat_id=chat_id, last_message=received_message, canal=2)  # Canal 1 = Webhook, Canal 2 = Telegram
-            return jsonify({"status": "transferred_to_human"}), 200
 
+            notify_support_team(
+                chat_id=chat_id,
+                last_message=received_message,
+                canal=2
+            )
 
+            return jsonify({
+                "status": "transferred_to_human"
+            }), 200
 
+        # ======================================
+        # 8. DIGITANDO
+        # ======================================
 
-        
-
-        # 3. Se não precisa de humano, o fluxo da IA/Gemini segue normalmente...
-        # ...
-
-    except KeyError as e:
-        print(f"Erro de estrutura no payload: {e}")
-        return jsonify({"status": "error", "message": "Invalid message structure"}), 400
-
-    # 3. Processa a IA e envia a resposta
-    try:
-        # Ativa o "digitando..." passando a sessão atual
-        waha.start_typing(chat_id=chat_id, session=session)
-
-        # Busca o histórico do chat garantindo o envio da sessão
-        history_messages = waha.get_history_messages(
+        waha.start_typing(
             chat_id=chat_id,
-            limit=10,
             session=session
         )
-        
-        # Processa a resposta via IA
-        response = ai_bot.invoke(history_messages=history_messages, question=received_message)
+        #
+        # ======================================
+        # 9. HISTÓRICO LIMPO
+        # ======================================
 
-        # Pausa para simular digitação humana
+        raw_history = waha.get_history_messages(
+            chat_id=chat_id,
+            limit=5,
+            session=session
+        )
+
+        history_messages = []
+
+        for msg in raw_history:
+            body = msg.get("body")
+            if not body or not str(body).strip():
+                continue
+
+            role = "assistant" if msg.get("fromMe") else "user"
+            history_messages.append({
+                "role": role,
+                "content": str(body).strip()
+            })
+
+        # Deixa na ordem cronológica (mais antiga → mais recente)
+        history_messages = list(reversed(history_messages))
+
+        print("========== HISTÓRICO ==========")
+        for m in history_messages:
+            print(f"{m['role'].upper():<10} | {m['content']}")
+        print("===============================")
+
+
+
+
+
+
+        # ======================================
+        # 10. IA / RAG / GROQ
+        # ======================================
+
+        response = ai_bot.invoke(
+            history_messages=history_messages,
+            question=received_message
+        )
+
+        # ======================================
+        # 11. SIMULA DIGITAÇÃO
+        # ======================================
+
         time.sleep(random.randint(2, 4))
 
-        # Envia a mensagem de volta
+        # ======================================
+        # 12. ENVIA RESPOSTA
+        # ======================================
+
         waha.send_message(
             chat_id=chat_id,
             message=response,
             session=session
         )
-        print(f"✅ RESPOSTA ENVIADA PARA {chat_id}: {response}")
 
-        return jsonify({'status': 'success'}), 200
+        print(
+            f"✅ RESPOSTA ENVIADA PARA {chat_id}: {response}"
+        )
+
+        return jsonify({
+            "status": "success"
+        }), 200
 
     except Exception as e:
-        print(f"❌ Erro ao gerar/enviar resposta: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+
+        print(
+            f"❌ Erro ao gerar/enviar resposta: {e}"
+        )
+
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
     finally:
-        # Remove o indicador de digitação de forma segura
+
         try:
-            waha.stop_typing(chat_id=chat_id, session=session)
+            waha.stop_typing(
+                chat_id=chat_id,
+                session=session
+            )
         except Exception:
             pass
 
+
+        
 # Endpoint interno para seu CRM/Painel avisar que o atendimento humano acabou
 @app.route('/api/chat/close-human', methods=['POST'])
 def close_human_chat():
