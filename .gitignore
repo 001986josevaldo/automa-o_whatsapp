@@ -37,7 +37,7 @@ logs/
 # =========================
 banco_vetorial/
 chroma_db/
-chroma_data/
+
 
 # =========================
 # IDE / Editor
