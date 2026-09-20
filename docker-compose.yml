@@ -4,14 +4,15 @@ services:
     image: devlikeapro/waha:latest
     container_name: wppbotwaha
     restart: always
+    ports:
+      - "3000:3000"
     environment:
       - WHATSAPP_ENGINE=NOWEB
-    ports:
-      - '3000:3000'
+      - WAHA_PRINT_QR=True
     env_file:
       - .env
     volumes:
-      - ./.waha:/app/.waha
+      - waha_sessions:/app/.waha   # persistência da sessão
 
   api:
     build:
@@ -20,13 +21,16 @@ services:
     container_name: wppbotapi
     restart: always
     ports:
-      - '5000:5000'
+      - "5000:5000"
     env_file:
       - .env
     environment:
       - WAHA_API_URL=http://waha:3000
     volumes:
-      - .:/app
-      - ./chroma_data:/app/chroma_data
+      - chroma_data:/app/chroma_data
     depends_on:
       - waha
+
+volumes:
+  waha_sessions:
+  chroma_data:

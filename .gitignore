@@ -30,7 +30,7 @@ logs/
 # =========================
 *.db
 *.sqlite
-*.sqlite3
+.sqlite3
 
 # =========================
 # Chroma / Banco vetorial
