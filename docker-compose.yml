@@ -27,10 +27,14 @@ services:
     environment:
       - WAHA_API_URL=http://waha:3000
     volumes:
+      - ./rag:/app/rag
       - chroma_data:/app/chroma_data
+      - ./entrypoint.sh:/app/entrypoint.sh
     depends_on:
       - waha
+    command: ["/bin/sh","/app/entrypoint.sh"]
 
 volumes:
   waha_sessions:
   chroma_data:
+  
